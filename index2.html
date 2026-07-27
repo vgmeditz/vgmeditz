@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VGM_Editz — Video Editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+  --bg:       #05070B;
+  --panel:    #0D1117;
+  --panel-2:  #151B23;
+  --line:     #283445;
+
+  --ink:      #FFFFFF;
+  --mute:     #9FB2C9;
+
+  --primary:  #00B8FF;
+  --secondary:#0084FF;
+  --accent:   #6FD3FF;
+}
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Manrope', sans-serif;
+    overflow-x:hidden;
+  }
+  ::selection{ background:var(--primary); color:#0a0a0d; }
+
+  h1,h2,h3, .display{
+    font-family:'Anton', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.01em;
+    line-height:0.95;
+  }
+
+  a{ color:inherit; text-decoration:none; }
+  img{ max-width:100%; display:block; }
+
+  /* ---------- sprocket / filmstrip motif ---------- */
+  .sprockets{
+    height:14px;
+    width:100%;
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--line) 0 8px,
+      transparent 8px 26px
+    );
+    background-position: center;
+    opacity:.6;
+  }
+  .sprockets.top{ margin-bottom: 0; }
+
+  /* ---------- nav ---------- */
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 18px clamp(20px,5vw,64px);
+    background:linear-gradient(180deg, rgba(10,10,13,.92), rgba(10,10,13,0));
+    backdrop-filter: blur(2px);
+  }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .logo-mark{
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    object-fit:cover;
+    box-shadow:0 0 18px rgba(23,224,214,.35);
+}
+  .brand-name{ font-family:'Anton', sans-serif; font-size:18px; letter-spacing:.03em; }
+  nav{ display:flex; gap:clamp(14px,3vw,34px); font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
+  nav a{ opacity:.75; transition:opacity .2s, color .2s; }
+  nav a:hover{ opacity:1; color:var(--primary); }
+  .nav-cta{
+    border:1px solid var(--line); padding:9px 16px; border-radius:999px;
+    opacity:1 !important; font-size:12px;
+  }
+  .nav-cta:hover{ border-color:#00B8FF; background:rgba(0,184,255,.08); }
+  @media (max-width:760px){ nav a:not(.nav-cta){ display:none; } }
+
+  /* ---------- hero ---------- */
+  .hero{
+    min-height:100svh;
+    display:flex; flex-direction:column; justify-content:center;
+    padding: 120px clamp(20px,6vw,90px) 60px;
+    position:relative;
+    background:
+radial-gradient(circle at 20% 20%,
+rgba(0,184,255,.18),
+transparent 55%),
+
+radial-gradient(circle at 90% 80%,
+rgba(0,132,255,.12),
+transparent 60%);
+  }
+  .eyebrow{
+    font-size:13px; font-weight:800; letter-spacing:.18em; text-transform:uppercase;
+    color: var(--primary); margin-bottom:22px; display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{ content:''; width:26px; height:2px; background:var(--primary); }
+  .hero h1{
+    font-size:clamp(52px, 10vw, 128px);
+    max-width:1100px;
+  }
+  .hero h1 .accent{ color: var(--primary); -webkit-text-stroke:0; }
+  .hero h1 .outline{
+    color:transparent; -webkit-text-stroke:2px var(--ink);
+  }
+  .hero-sub{
+    margin-top:26px; max-width:560px; font-size:17px; line-height:1.65; color:var(--mute);
+  }
+  .hero-actions{ display:flex; gap:16px; flex-wrap:wrap; margin-top:40px; }
+  .btn{
+    padding:15px 28px; border-radius:999px; font-weight:800; font-size:13px;
+    letter-spacing:.06em; text-transform:uppercase; display:inline-flex; align-items:center; gap:10px;
+    transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg,#00B8FF,#0084FF);
+    color:white;
+    box-shadow:0 8px 30px rgba(0,184,255,.35);
+}
+
+.btn-primary:hover{
+    transform:translateY(-2px);
+    box-shadow:0 12px 34px rgba(0,184,255,.55);
+}
+  .btn-ghost{ border:1px solid var(--line); color:var(--ink); }
+  .btn-ghost:hover{ border-color:var(--cyan); color:var(--cyan); }
+
+  .hero-stats{
+    display:flex; gap:clamp(26px,5vw,60px); margin-top:64px; flex-wrap:wrap;
+  }
+  .stat b{ font-family:'Anton', sans-serif; font-size:30px; display:block; }
+  .stat span{ font-size:12px; color:var(--mute); text-transform:uppercase; letter-spacing:.08em; }
+
+  /* ---------- section shell ---------- */
+  section{ padding: 100px clamp(20px,6vw,90px); position:relative; }
+  .section-head{ display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-bottom:56px; flex-wrap:wrap; }
+  .section-tag{ font-size:12px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; color:var(--cyan); margin-bottom:14px; }
+  .section-head h2{ font-size:clamp(34px, 5vw, 58px); }
+  .section-head p{ max-width:420px; color:var(--mute); font-size:15px; line-height:1.6; }
+
+  /* ---------- about ---------- */
+  .about{ background:var(--panel); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+  .about-grid{ display:grid; grid-template-columns: 1.1fr .9fr; gap:70px; }
+  @media (max-width:860px){ .about-grid{ grid-template-columns:1fr; } }
+  .about-copy p{ font-size:18px; line-height:1.75; color:#d8d6cf; margin-bottom:20px; }
+  .about-copy p:first-of-type{ font-size:22px; color:var(--ink); font-weight:600; }
+
+  .toolstack{ display:flex; flex-direction:column; gap:10px; }
+  .tool-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 20px; border:1px solid var(--line); border-radius:12px;
+    background:var(--panel-2);
+  }
+  .tool-row.core{ border-color: var(--primary); box-shadow:0 0 0 1px rgba(0,184,255,.2) inset; }
+  .tool-name{ font-weight:700; font-size:15px; }
+  .tool-tag{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--mute); }
+  .tool-row.core .tool-tag{ color: var(--primary); font-weight:800; }
+  .bar-track{ width:100%; height:6px; background:var(--line); border-radius:6px; margin-top:8px; overflow:hidden; }
+  .bar-fill{ height:100%; border-radius:6px; background:linear-gradient(
+90deg,
+#00B8FF,
+#66D9FF); }
+  .toolstack-wrap{ margin-top:8px; }
+  .toolstack-label{ font-size:12px; color:var(--mute); text-transform:uppercase; letter-spacing:.1em; margin-bottom:16px; }
+
+  /* ---------- genre chips ---------- */
+  .chips{ display:flex; flex-wrap:wrap; gap:12px; margin-top:30px; }
+  .chip{
+    border:1px solid var(--line); padding:10px 18px; border-radius:999px;
+    font-size:13px; font-weight:700; color:var(--mute);
+    transition:border-color .2s, color .2s;
+  }
+  .chip:hover{ border-color:var(--cyan); color:var(--cyan); }
+
+  /* ---------- work / reel rack ---------- */
+  .reel-rack{
+    display:flex; gap:22px; overflow-x:auto; padding:10px 4px 30px;
+    scroll-snap-type:x mandatory;
+  }
+  .reel-rack::-webkit-scrollbar{ height:8px; }
+  .reel-rack::-webkit-scrollbar-thumb{ background:var(--line); border-radius:8px; }
+  .reel-card{
+    flex:0 0 auto; width:min(78vw, 260px); scroll-snap-align:start;
+  }
+  .phone-frame{
+    aspect-ratio: 9/16; width:100%; border-radius:22px; overflow:hidden;
+    background:#000; border:2px solid var(--line);
+    box-shadow: 0 20px 50px rgba(0,0,0,.5);
+    position:relative;
+    transition: border-color .25s, transform .25s;
+  }
+  .reel-card:hover .phone-frame{ border-color: var(--primary); transform:translateY(-6px); }
+  .phone-frame iframe{ width:100%; height:100%; border:0; }
+  .reel-meta{ margin-top:14px; }
+  .reel-index{ font-size:11px; color: var(--primary); font-weight:800; letter-spacing:.1em; }
+  .reel-title{ font-family:'Anton', sans-serif; font-size:17px; margin-top:4px; text-transform:uppercase; }
+  .reel-desc{ font-size:13px; color:var(--mute); margin-top:6px; line-height:1.5; }
+
+  .rack-hint{ font-size:12px; color:var(--mute); margin-top:-30px; margin-bottom:30px; display:flex; align-items:center; gap:8px; }
+  .rack-hint::after{ content:'→'; color: var(--primary); font-size:16px; }
+
+  /* ---------- process / timeline ---------- */
+  .timeline{ background:var(--panel); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+  .tl-track{ position:relative; padding-left:26px; border-left:2px solid var(--line); display:flex; flex-direction:column; gap:46px; margin-top:20px; }
+  .tl-step{ position:relative; }
+  .tl-step::before{
+    content:''; position:absolute; left:-33px; top:4px; width:14px; height:14px; border-radius:50%;
+    background:var(--bg); border:2px solid var(--primary);
+  }
+  /* Timeline headings only */
+.tl-step h3{
+    letter-spacing: 0.05em;   /* Increase if needed */
+    word-spacing: 2px;         /* Optional */
+    line-height: 1.2;
+    font-weight: normal;
+}
+  .tl-step p{ color:var(--mute); font-size:14px; max-width:520px; line-height:1.6; }
+
+  /* ---------- contact ---------- */
+  .contact{ text-align:center; padding-bottom:140px; }
+  .contact h2{ font-size:clamp(38px,7vw,80px); max-width:900px; margin:0 auto; }
+  .contact-sub{ color:var(--mute); max-width:480px; margin:22px auto 0; font-size:16px; line-height:1.6; }
+  .contact-actions{ display:flex; justify-content:center; gap:16px; margin-top:40px; flex-wrap:wrap; }
+  .email-line{ margin-top:50px; font-size:14px; color:var(--mute); }
+  .email-line a{ color:var(--ink); font-weight:700; border-bottom:1px solid var(--line); }
+  .email-line a:hover{ color:var(--cyan); border-color:var(--cyan); }
+
+  footer{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:24px clamp(20px,6vw,90px);
+    border-top:1px solid var(--line);
+    font-size:12px;
+    color:var(--mute);
+}
+.yt-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin-top:14px;
+    padding:10px 18px;
+    border:1px solid #00B8FF;
+    border-radius:999px;
+    color:#00B8FF;
+    text-decoration:none;
+    font-size:13px;
+    font-weight:700;
+    transition:.25s ease;
+}
+
+.yt-btn:hover{
+    background:#00B8FF;
+    color:#fff;
+    transform:translateY(-2px);
+    box-shadow:0 8px 20px rgba(0,184,255,.35);
+}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img src="new 1whitebg.jpg" alt="Logo" class="logo-mark">
+    <div class="brand-name">VGM_EDITZ</div>
+</div>
+  <nav>
+    <a href="#work">Work</a>
+    <a href="#about">About</a>
+    <a href="#process">Process</a>
+    <a href="#contact" class="nav-cta">Get in touch</a>
+  </nav>
+</header>
+
+<div class="sprockets top"></div>
+
+<section class="hero">
+  <div class="eyebrow">Video Editor · Short-Form Specialist</div>
+  <h1>CUT ON <span class="accent">RHYTHM.</span><br>BUILT FOR <span class="outline">IMPACT.</span></h1>
+  <p class="hero-sub">
+    I'm VGM_Editz — I turn raw footage into fast, high-impact vertical edits built around rhythm and flow: superhero and gaming moments, meme cuts, anime shorts, and phonk-scored edits designed to hit hard in the first second.
+  </p>
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="https://youtube.com/@vgm_editzz" target="_blank" rel="noopener">▶ Watch the channel</a>
+    <a class="btn btn-ghost" href="#work">See the work</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><b>AE / Topaz</b><span>Core toolkit</span></div>
+    <div class="stat"><b>Vertical</b><span>Format focus</span></div>
+    <div class="stat"><b>Rhythm</b><span>Editing signature</span></div>
+  </div>
+</section>
+
+<div class="sprockets"></div>
+
+<section class="about" id="about">
+  <div class="section-head">
+    <div>
+      <div class="section-tag">Who's editing</div>
+      <h2>About VGM_Editz</h2>
+    </div>
+    <p>A one-person edit shop focused on short-form video that's built to be rewatched.</p>
+  </div>
+  <div class="about-grid">
+    <div class="about-copy">
+      <p>I love the art of editing — VGM_Editz is where I share it.</p>
+      <p>My edits sit across superhero and Marvel moments, gaming highlights, viral memes, anime shorts, and phonk-scored cuts — always chasing the same thing: rhythm and flow that make a clip feel inevitable, not assembled.</p>
+      <p>Every project starts in After Effects and gets its final polish through Topaz AI upscaling, with Premiere Pro, CapCut, and Alight Motion in rotation depending on what the footage needs.</p>
+      <div class="chips">
+        <span class="chip">Marvel Edits</span>
+        <span class="chip">Gaming Edits</span>
+        <span class="chip">Meme Edits</span>
+        <span class="chip">Anime Shorts</span>
+        <span class="chip">Phonk Edits</span>
+        <span class="chip">Movie / DC Edits</span>
+      </div>
+    </div>
+    <div class="toolstack-wrap">
+      <div class="toolstack-label">Toolkit</div>
+      <div class="toolstack">
+        <div class="tool-row core">
+          <div><div class="tool-name">After Effects</div><div class="tool-tag">Primary</div></div>
+        </div>
+        <div class="tool-row core">
+          <div><div class="tool-name">Topaz AI</div><div class="tool-tag">Primary</div></div>
+        </div>
+        <div class="tool-row">
+          <div><div class="tool-name">Premiere Pro</div><div class="tool-tag">Secondary</div></div>
+        </div>
+        <div class="tool-row">
+          <div><div class="tool-name">CapCut</div><div class="tool-tag">Secondary</div></div>
+        </div>
+        <div class="tool-row">
+          <div><div class="tool-name">Alight Motion</div><div class="tool-tag">Secondary</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="work">
+  <div class="section-head">
+    <div>
+      <div class="section-tag">Selected Work</div>
+      <h2>Straight From The Channel</h2>
+    </div>
+    <p>A handful of edits pulled from @vgm_editzz — swap in captions or add more anytime.</p>
+  </div>
+  <div class="rack-hint">Scroll the reel rack</div>
+  <div class="reel-rack">
+
+    <div class="reel-card">
+      <div class="phone-frame">
+        <iframe src="https://www.youtube.com/embed/muWw-c1P_Qc" title="VGM_Editz short 1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="reel-meta">
+        <div class="reel-index">REEL 01</div>
+        <div class="reel-title">Beat Sync Edit</div>
+        <div class="reel-desc">Fast-paced vertical edit built around beat sync and impact framing.</div>
+      </div>
+      <a href="https://www.youtube.com/embed/muWw-c1P_Qc"
+   target="_blank"
+   rel="noopener"
+   class="yt-btn">
+   ▶ Watch on YouTube
+</a>
+    </div>
+
+    <div class="reel-card">
+      <div class="phone-frame">
+        <iframe src="https://www.youtube.com/embed/h6HV84Welo4" title="VGM_Editz short 2" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="reel-meta">
+        <div class="reel-index">REEL 02</div>
+        <div class="reel-title">Phonk Edit</div>
+        <div class="reel-desc">Bass-driven phonk edit timed to hit on the drop.</div>
+      </div>
+      <a href="https://www.youtube.com/embed/h6HV84Welo4"
+   target="_blank"
+   rel="noopener"
+   class="yt-btn">
+   ▶ Watch on YouTube
+</a>
+    </div>
+
+    <div class="reel-card">
+      <div class="phone-frame">
+        <iframe src="https://www.youtube.com/embed/G3qv6WLmQlU" title="VGM_Editz short 3" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="reel-meta">
+        <div class="reel-index">REEL 03</div>
+        <div class="reel-title">Anime / Movie Cut</div>
+        <div class="reel-desc">Scene-driven short blending anime / movie source footage.</div>
+      </div>
+      <a href="https://www.youtube.com/embed/G3qv6WLmQlU"
+   target="_blank"
+   rel="noopener"
+   class="yt-btn">
+   ▶ Watch on YouTube
+</a>
+    </div>
+
+    <div class="reel-card">
+      <div class="phone-frame">
+        <iframe src="https://www.youtube.com/embed/I99brjAZ9zE" title="VGM_Editz short 4" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="reel-meta">
+        <div class="reel-index">REEL 04</div>
+        <div class="reel-title">Superhero Edit</div>
+        <div class="reel-desc">Motion graphics, seamless transitions, and AI-enhanced visuals for a cinematic superhero edit.</div>
+      </div>
+      <a href="https://www.youtube.com/embed/I99brjAZ9zE"
+   target="_blank"
+   rel="noopener"
+   class="yt-btn">
+   ▶ Watch on YouTube
+</a>
+    </div>
+
+    <div class="reel-card">
+      <div class="phone-frame">
+        <iframe src="https://www.youtube.com/embed/joq8aiyBi3o" title="VGM_Editz short 5" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="reel-meta">
+        <div class="reel-index">REEL 05</div>
+        <div class="reel-title">Marvel Edit</div>
+        <div class="reel-desc">Marvel-inspired short with dynamic transitions and Topaz-upscaled footage.</div>
+      </div>
+      <a href="https://www.youtube.com/embed/joq8aiyBi3o"
+   target="_blank"
+   rel="noopener"
+   class="yt-btn">
+   ▶ Watch on YouTube
+</a>
+    </div>
+
+  </div>
+</section>
+
+<section class="timeline" id="process">
+  <div class="section-head">
+    <div>
+      <div class="section-tag">How An Edit Gets Made</div>
+      <h2>From Clip To Cut</h2>
+    </div>
+    <p>The pass every edit runs through before it goes up on the channel.</p>
+  </div>
+  <div class="tl-track">
+    <div class="tl-step">
+      <h3>Source & sync</h3>
+      <p>Footage gets pulled together and laid against the track — the beat decides where every cut lands.</p>
+    </div>
+    <div class="tl-step">
+      <h3>Build in After Effects</h3>
+      <p>Motion, transitions, and effects are built out in AE to give the edit its shape and pace.</p>
+    </div>
+    <div class="tl-step">
+      <h3>Upscale with Topaz AI</h3>
+      <p>Footage gets cleaned up and upscaled so it holds up sharp on a vertical screen.</p>
+    </div>
+    <div class="tl-step">
+      <h3>Finish & export</h3>
+      <p>Final polish runs through Premiere Pro, CapCut, or Alight Motion depending on what the clip needs, then it ships.</p>
+    </div>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+  <div class="section-tag" style="justify-content:center; display:flex;">Let's Work Together</div>
+  <h2>Got Footage That Needs<br>Rhythm?</h2>
+  <p class="contact-sub">Open to edit requests, collabs, and channel work — send over the details and I'll get back to you.</p>
+  <div class="contact-actions">
+    <a class="btn btn-primary" href="mailto:vgm_editz238@gmail.com">Email me</a>
+    <a class="btn btn-ghost" href="https://youtube.com/@vgm_editzz" target="_blank" rel="noopener">▶ YouTube Channel</a>
+  </div>
+  <div class="email-line">or reach out directly at <a href="mailto:vgmeditz238@gmail.com">vgmeditz238@gmail.com</a></div>
+</section>
+
+<div class="sprockets"></div>
+
+<footer>
+  <span>© 2026 VGM_Editz</span>
+</footer>
+
+</body>
+</html>
