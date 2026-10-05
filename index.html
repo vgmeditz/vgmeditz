@@ -199,11 +199,15 @@ transparent 60%);
   .reel-card:hover .phone-frame{ border-color: var(--primary); transform:translateY(-6px); }
   .phone-frame iframe,
 .phone-frame video {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: contain;
-  object-position: center;
+  margin: 0;
+  padding: 0;
+  object-fit: fill;
 }
   .reel-meta{ margin-top:14px; }
   .reel-index{ font-size:11px; color: var(--primary); font-weight:800; letter-spacing:.1em; }
